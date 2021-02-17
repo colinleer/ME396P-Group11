@@ -1,1 +1,5 @@
+Colin Campbell {colinleer@gmail.com}
+Colin Campbell {graduate}
+Colin Campbell My interests include {cycling, playing guitar, building things}
+Colin Campbell I am committed to me and my team members learning Python
 

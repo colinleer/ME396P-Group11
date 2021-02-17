@@ -3,3 +3,7 @@ Colin Campbell {graduate}
 Colin Campbell My interests include {cycling, playing guitar, building things}
 Colin Campbell I am committed to me and my team members learning Python
 
+Rahmat Ashari {rahx@utexas.edu}
+Rahmat Ashari {graduate}
+Rahmat Ashari My interests include {memes, soccer, kpop}
+Rahmat Ashari I am committed to me and my team members learning Python

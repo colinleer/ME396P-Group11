@@ -2,12 +2,10 @@ Colin Campbell {colinleer@gmail.com}
 Colin Campbell {graduate}
 Colin Campbell My interests include {cycling, playing_guitar, building_things}
 Colin Campbell I am committed to me and my team members learning Python
-
 Rahmat Ashari {rahx@utexas.edu}
 Rahmat Ashari {graduate}
 Rahmat Ashari My interests include {memes, soccer, kpop}
 Rahmat Ashari I am committed to me and my team members learning Python
-
 Ziming Wang {peterwang012@utexas.edu}
 Ziming Wang {undergraduate}
 Ziming Wang My interests include {Tacos, Beer, EDM}

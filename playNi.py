@@ -47,6 +47,7 @@ class mainFrame(wx.Frame):
         control_sizer.Add(play_button)
 
         # Load default soundfile
+        self.choice_list.SetSelection(0)
         self.load_sound(None)
 
         # Show Frame

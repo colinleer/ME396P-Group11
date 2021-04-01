@@ -19,7 +19,7 @@ class mainFrame(wx.Frame):
         self.Show()
 
     def i_Ni_t_GUI(self):
-        pass
+        
         #### Create and populate menu bar
 
         menuBar = wx.MenuBar()

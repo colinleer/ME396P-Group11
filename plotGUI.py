@@ -12,6 +12,9 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
 
+#import lra model
+import model
+
 class myApp(wx.Frame):
     def __init__(self, title = "draft 1.0"):
         wx.Frame.__init__(self, None, title=title, size=(1000,750))
@@ -39,7 +42,7 @@ class myApp(wx.Frame):
         textSliderFreq = wx.StaticText(mainPanel, label = "Frequency")
         textLeftTop.SetFont(font)
 
-        png = wx.StaticBitmap(mainPanel, -1, wx.Bitmap("/Users/rahmatashari/Desktop/wxp/squid.png", wx.BITMAP_TYPE_ANY))
+        png = wx.StaticBitmap(mainPanel, -1, wx.Bitmap("squid.png", wx.BITMAP_TYPE_ANY))
 
         # create number input
         freqInput = wx.TextCtrl(mainPanel, -1)
@@ -50,6 +53,10 @@ class myApp(wx.Frame):
         # create button to plot
         button0 = wx.Button(mainPanel, -1, label = "plot!")
         self.Bind(wx.EVT_BUTTON, self.plotStuff, button0)
+
+        #msd plot button
+        plot_msd_button = wx.Button(mainPanel, -1, label = "plot msd")
+        self.Bind(wx.EVT_BUTTON, self.plotMSD, plot_msd_button)
 
         # create slider
         sliderAmp = wx.Slider(mainPanel, -1, minValue = -100, maxValue = 100, style = wx.SL_HORIZONTAL|wx.SL_LABELS, name = "amp")
@@ -159,6 +166,21 @@ class myApp(wx.Frame):
         x = a*np.sin(f*t)/t
         self.axes.plot(t, x)
         self.canvas.draw()
+
+    #test method for displaying lra response spectrum
+
+    def plotMSD(self, evt):
+        self.figure.set_canvas(self.canvas)
+        self.axes.clear()
+        self.axes.set_ylabel("Z (ohms)")
+        self.axes.set_xlabel("Frequency (Hz)")
+        self.axes.set_title("LRA Response")
+        
+        lra = model.test_lra()
+        [freq,Z] = lra.get_impedance_spectrum()
+        self.axes.loglog(freq, abs(Z))
+        self.canvas.draw()
+
 
 # Run the program
 if __name__ == "__main__":

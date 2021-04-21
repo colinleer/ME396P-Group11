@@ -22,48 +22,48 @@ class mainFrame(wx.Frame):
         pass
         #### Create and populate menu bar
 
-        # menuBar = wx.MenuBar()
-        # fileMenu = wx.Menu()
-        # aboutMenu = fileMenu.Append(wx.ID_ANY, "&About")
-        # exitMenu = fileMenu.Append(wx.ID_ANY, "&Exit")
-        # menuBar.Append(fileMenu, "&File")
-        # self.SetMenuBar(menuBar)
+        menuBar = wx.MenuBar()
+        fileMenu = wx.Menu()
+        aboutMenu = fileMenu.Append(wx.ID_ANY, "&About")
+        exitMenu = fileMenu.Append(wx.ID_ANY, "&Exit")
+        menuBar.Append(fileMenu, "&File")
+        self.SetMenuBar(menuBar)
 
         #### Create button and choice controls ####
 
-        # play_button = wx.Button(self, wx.ID_ANY, "play") # pos = (10,10)
-        # self.choice_list = wx.Choice(self, choices = self.sound_names) # pos = (10,40)
-        # image = wx.StaticBitmap(self, -1, wx.Bitmap("./inc/img.png", wx.BITMAP_TYPE_ANY))
+        play_button = wx.Button(self, wx.ID_ANY, "play") # pos = (10,10)
+        self.choice_list = wx.Choice(self, choices = self.sound_names) # pos = (10,40)
+        image = wx.StaticBitmap(self, -1, wx.Bitmap("./inc/img.png", wx.BITMAP_TYPE_ANY))
 
         #### Create and populate sizers
 
-        # main_sizer = wx.BoxSizer(wx.VERTICAL)
-        # control_sizer = wx.StaticBoxSizer(wx.HORIZONTAL, self)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        control_sizer = wx.StaticBoxSizer(wx.HORIZONTAL, self)
 
-        # main_sizer.Add(control_sizer, 0, wx.ALIGN_CENTER, 0)
-        # main_sizer.Add(image, 0, wx.ALIGN_CENTER, 0)
+        main_sizer.Add(control_sizer, 0, wx.ALIGN_CENTER, 0)
+        main_sizer.Add(image, 0, wx.ALIGN_CENTER, 0)
         
-        # control_sizer.Add(self.choice_list)
-        # control_sizer.Add(play_button)
+        control_sizer.Add(self.choice_list)
+        control_sizer.Add(play_button)
 
         #### Set Sizer and Show Frame
 
-        # self.SetSizerAndFit(main_sizer)
-        # self.Center()
+        self.SetSizerAndFit(main_sizer)
+        self.Center()
 
 
         #### Bind events to callback functions
 
-        # self.Bind(wx.EVT_BUTTON, self.play_sound, play_button)   #### Button Click
-        # self.Bind(wx.EVT_CHOICE, self.load_sound, self.choice_list) #### Choice Selection
-        # self.Bind(wx.EVT_MENU, self.About, aboutMenu) #### File>About
-        # self.Bind(wx.EVT_MENU, self.Quit, exitMenu) #### File>Quit
-        # self.Bind(wx.EVT_CLOSE, self.Quit) #### Window close event
+        self.Bind(wx.EVT_BUTTON, self.play_sound, play_button)   #### Button Click
+        self.Bind(wx.EVT_CHOICE, self.load_sound, self.choice_list) #### Choice Selection
+        self.Bind(wx.EVT_MENU, self.About, aboutMenu) #### File>About
+        self.Bind(wx.EVT_MENU, self.Quit, exitMenu) #### File>Quit
+        self.Bind(wx.EVT_CLOSE, self.Quit) #### Window close event
 
         #### Initialize choice and soundfile
 
-        # self.choice_list.SetSelection(0)
-        # self.load_sound(None)
+        self.choice_list.SetSelection(0)
+        self.load_sound(None)
 
 
     #### Callback function definitions

@@ -1,5 +1,11 @@
 import wx
+import matplotlib
 import matplotlib.pyplot as plt
+
+matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+from matplotlib.figure import Figure
 #local imports
 import lra_model  
 
@@ -79,14 +85,51 @@ class lra_panel(wx.Panel):
         self.Bl_value.SetValue(str(self.lra.Bl))
 
     def plot_response(self, evt):
-        [freq,Z] = self.lra.get_impedance_spectrum()
-        fig, ax = plt.subplots(1)
-        ax.set_xlabel('Frequency (Hz)')
-        ax.set_ylabel('Ze (ohms)')
+        data = self.lra.get_impedance_spectrum()
+        # fig, ax = plt.subplots(1)
+        # ax.set_xlabel('Frequency (Hz)')
+        # ax.set_ylabel('Ze (ohms)')
 
-        line1, = ax.loglog(freq, abs(Z), label='LRA')
-        plt.show()
+        # line1, = ax.loglog(freq, abs(Z), label='LRA')
+        # plt.show()
 
+        dlg = PlotDialog(data)
+        ret = dlg.ShowModal()    
+        dlg.Destroy()
+
+class PlotDialog(wx.Dialog):
+
+    def __init__(self, data, title="LRA Model", parent=None):
+        wx.Dialog.__init__(self, parent=parent, title=title)
+        pnl = wx.Panel(self)
+
+        [freq, Ze] = data
+
+        # Plot 
+        self.figure = Figure()
+        self.axes = self.figure.add_subplot(111)
+
+        self.canvas = FigureCanvas(pnl, -1, self.figure)
+        self.axes.grid(alpha = 0.5)
+
+        
+        self.figure.set_canvas(self.canvas)
+        self.axes.clear()
+        self.axes.set_ylabel("Ze (Ohms)")
+        self.axes.set_xlabel("Frequency (Hz)")
+        self.axes.set_title("LRA Impedance Spectrum")
+        self.axes.grid(alpha = 0.5)
+        self.axes.loglog(  freq, abs(Ze))
+        self.canvas.draw()
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.canvas, 0, wx.ALL, 10)
+        sizer.Add(self.CreateStdDialogButtonSizer ( wx.OK|wx.CANCEL ))
+
+        # pnl.SetSizer(sizer)
+        sizer.SetSizeHints(self)
+        pnl.SetSizerAndFit(sizer)
+        self.Center()
 
 
 class LRA_Frame(wx.Frame):

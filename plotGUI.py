@@ -4,7 +4,7 @@
 
 # Have TODO
 # Simulated Response
-# create simple wxDialog for LRA Model plot
+
 
 # Nice TODO
 # sinc function segment necessary?

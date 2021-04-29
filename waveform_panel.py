@@ -78,7 +78,7 @@ class waveform_builder(wx.Panel):
         list_sizer.Add(control_sizer)
         list_sizer.Add(self.list_ctrl, 1, wx.TOP | wx.EXPAND, 5)
         main_sizer.Add(list_sizer, 1, wx.EXPAND | wx.LEFT, 5)
-        main_sizer.Add(parameter_sizer, 0 , wx.LEFT, 10)
+        main_sizer.Add(parameter_sizer, 0 , wx.LEFT | wx.RIGHT, 60)
 
         self.SetSizerAndFit(main_sizer)
 

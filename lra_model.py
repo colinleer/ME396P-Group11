@@ -36,14 +36,26 @@ class mass_spring_damper():
         
 
 
-class test_lra(mass_spring_damper):
+class jahwa_j6(mass_spring_damper):
 
     def __init__(self):
         self.parameters = { 'm': 1.61e-3, 
                             'Cm': .0003,
                             'Rm': .001,
                             'Bl': 1.12,
-                            'Re': 4.3,
+                            'Re': 9,
+                            'Le': 0.1e-3
+                            }
+        super().__init__(self.parameters)
+
+class nidec_sprinter_r(mass_spring_damper):
+
+    def __init__(self):
+        self.parameters = { 'm': 2.54e-3, 
+                            'Cm': .0006,
+                            'Rm': .004,
+                            'Bl': .92,
+                            'Re': 15,
                             'Le': 0.1e-3
                             }
         super().__init__(self.parameters)

@@ -2,11 +2,32 @@
 # https://stackoverflow.com/questions/7647760/how-i-can-set-gap-in-vertical-boxsizer
 # pythonw ~/Desktop/wxp/plotGUI.py
 
+# Have TODO
+# Simulated Response
+# create simple wxDialog for LRA Model plot
+
+# Nice TODO
+# sinc function segment necessary?
+# smoothing function between segments
+# save/load wavebuilder segment arrays in custom file format (xml, json)?
+# highlight current segment on plot
+# additional parameters? alter sine shape, etc
+# read LRA models parameters from files in a folder
+# show LRA model resonant frequency on plot? or in parameters?
+
+# BUG 
+# Waveform segment times shift around when amplitude is changed
+# Deleting waveform segments causes weird behavior
+
 import numpy as np
 import matplotlib
 import wx
 from scipy.io.wavfile import write as wavWrite
-import model # local
+from pubsub import pub
+
+#local imports
+import lra_panel 
+import waveform_panel 
 
 # all these matplotlib backend stuff ....
 matplotlib.use('WXAgg')
@@ -15,7 +36,7 @@ from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
 
 class myApp(wx.Frame):
-    def __init__(self, title = "waveform builder version = 1.2-rahx"):
+    def __init__(self, title = "Haptic Waveform Designer  v1.3"):
         wx.Frame.__init__(self, None, title=title, size=(1000,750))
         self.freq = 1
         self.amp = 1
@@ -27,6 +48,7 @@ class myApp(wx.Frame):
         self.whichPlot = "builder"
         self.theUI()
         self.statusBar.SetStatusText('current amplitude = {0} , current frequency = {1}, showing plot: {2}'.format(self.amp, self.freq, self.whichPlot))
+        self.waves = []
 
     def theUI(self):
         # define main panel 
@@ -34,21 +56,13 @@ class myApp(wx.Frame):
         mainPanel.SetBackgroundColour("#ffffff")
 
         # All the statics
-        font = wx.Font(20, family = wx.FONTFAMILY_SWISS, style = 0, weight = 90, 
+        font = wx.Font(36, family = wx.FONTFAMILY_SWISS, style = 0, weight = 90, 
                             underline = False, faceName ="", encoding = wx.FONTENCODING_DEFAULT)
 
-        textLeftTop = wx.StaticText(mainPanel, label = "Waveform Builder")
-        textManualSection = wx.StaticText(mainPanel, label = "Manual Inputs")
-        textSlider = wx.StaticText(mainPanel, label = "Slider Adjustment")
-        textManualAmp = wx.StaticText(mainPanel, label = "Amplitude")
-        textManualFreq = wx.StaticText(mainPanel, label = "Frequency")
-        textSliderAmp = wx.StaticText(mainPanel, label = "Amplitude")
-        textSliderFreq = wx.StaticText(mainPanel, label = "Frequency")
-        textCourse = wx.StaticText(mainPanel, label = "ME-396P")
-        textNames = wx.StaticText(mainPanel, label = "Rahmat Ashari, Colin Campbell, Peter Wang")
-        textLeftTop.SetFont(font)
+        # textLeftTop = wx.StaticText(mainPanel, label = "Haptic Waveform Designer")
+        # textLeftTop.SetFont(font)
 
-        png = wx.StaticBitmap(mainPanel, -1, wx.Bitmap("/Users/rahmatashari/Desktop/wxp/squid.png", wx.BITMAP_TYPE_ANY))
+        # png = wx.StaticBitmap(mainPanel, -1, wx.Bitmap("squid.png", wx.BITMAP_TYPE_ANY))
 
         # menubar 
         menuBar = wx.MenuBar()
@@ -63,81 +77,32 @@ class myApp(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onSaveAs, saveFileMenu)
         self.Bind(wx.EVT_MENU, self.About, aboutSubMenu)
 
-        # create number inputs
-        freqInput = wx.TextCtrl(mainPanel, -1)
-        ampInput = wx.TextCtrl(mainPanel, -1)
-        self.Bind(wx.EVT_TEXT, self.manualGetFreq, freqInput)
-        self.Bind(wx.EVT_TEXT, self.manualGetAmp, ampInput)
-
-        # create button to plot
-        button0 = wx.Button(mainPanel, -1, label = "plot!")
-        self.Bind(wx.EVT_BUTTON, self.plotStuff, button0)
-
-        #msd plot button
-        plot_msd_button = wx.Button(mainPanel, -1, label = "plot msd")
-        self.Bind(wx.EVT_BUTTON, self.plotMSD, plot_msd_button)
-
-        # create slider
-        self.sliderAmp = wx.Slider(mainPanel, -1, minValue = -100, maxValue = 100, style = wx.SL_HORIZONTAL|wx.SL_LABELS, name = "amp")
-        self.sliderFreq = wx.Slider(mainPanel, -1, minValue = 1, maxValue = 100, style = wx.SL_HORIZONTAL|wx.SL_LABELS, name = "freq")
-        self.Bind(wx.EVT_SLIDER, self.changeFreqSlider, self.sliderFreq)
-        self.Bind(wx.EVT_SLIDER, self.changeAmpSlider, self.sliderAmp)
-
         # Plot 
         self.figure = Figure()
         self.axes = self.figure.add_subplot(111)
-        self.axes.set_ylabel("some magnitude")
-        self.axes.set_xlabel("some x value")
-        self.axes.set_title("Fantastic title")
+        self.axes.set_ylabel("Voltage")
+        self.axes.set_xlabel("Time (ms)")
+        self.axes.set_title("Waveform")
         self.canvas = FigureCanvas(mainPanel, -1, self.figure)
         self.axes.grid(alpha = 0.5)
         self.whichPlot = "builder"
 
+        #register for waveform plot updates
+        pub.subscribe(self.update_plot, 'update_waveform_data')
+
+        wvfm_panel = waveform_panel.waveform_builder(mainPanel)
+        lra_pnl = lra_panel.lra_panel(mainPanel)
+
+
+
         # declare sizers
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        rightSizer = wx.BoxSizer(wx.VERTICAL)
-        leftSizer = wx.BoxSizer(wx.VERTICAL)
-        manualGrid = wx.GridSizer(2,2,10,10)
-        sliderGrid = wx.GridSizer(2,2,5,5)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_sizer.Add(self.canvas, 1, wx.EXPAND)
+        top_sizer.Add(lra_pnl, 0, wx.TOP | wx.RIGHT, 60)
+        mainSizer.Add(top_sizer, 1, wx.EXPAND)
+        mainSizer.Add(wvfm_panel, 0, wx.ALL|wx.EXPAND, 10)
 
-        manualGrid.Add(textManualAmp, 1, wx.CENTER)
-        manualGrid.Add(ampInput, 1, wx.CENTER | wx.EXPAND)
-        manualGrid.Add(textManualFreq, 1, wx.CENTER)
-        manualGrid.Add(freqInput, 1, wx.CENTER | wx.EXPAND)
-
-        sliderGrid.Add(textSliderAmp, 1, wx.EXPAND)
-        sliderGrid.Add(self.sliderAmp, 1, wx.EXPAND | wx.EXPAND)
-        sliderGrid.Add(textSliderFreq, 1, wx.EXPAND)
-        sliderGrid.Add(self.sliderFreq, 1, wx.EXPAND | wx.EXPAND)
-
-        leftSizer.AddStretchSpacer()
-        leftSizer.Add(textLeftTop, 1, wx.CENTER)
-        leftSizer.AddStretchSpacer()
-        leftSizer.Add(self.canvas, 1, wx.EXPAND)
-        leftSizer.AddStretchSpacer()
-        leftSizer.AddStretchSpacer()
-        leftSizer.AddStretchSpacer()
-        leftSizer.Add(textCourse, 1, wx.CENTER)
-        leftSizer.Add(textNames, 1, wx.CENTER)
-        #leftSizer.AddStretchSpacer()
-
-        rightSizer.AddStretchSpacer()
-        rightSizer.Add(textManualSection, 1, wx.CENTER)
-        rightSizer.Add(manualGrid, 1, wx.CENTER | wx.EXPAND)
-        rightSizer.Add(button0, 1, wx.EXPAND)
-        rightSizer.AddStretchSpacer()
-        rightSizer.Add(textSlider, 1, wx.CENTER)
-        rightSizer.Add(sliderGrid, 1, wx.CENTER)
-        rightSizer.AddStretchSpacer()
-        rightSizer.Add(png, 1, wx.EXPAND)
-        rightSizer.AddStretchSpacer()
-
-        mainSizer.AddSpacer(25)
-        mainSizer.Add(leftSizer, 1, wx.EXPAND) 
-        mainSizer.AddSpacer(25)
-        mainSizer.Add(rightSizer, 1, wx.EXPAND)
-        mainSizer.AddSpacer(25)
-    
         # Put sizer to the main panel
         mainPanel.SetSizer(mainSizer)
 
@@ -214,6 +179,23 @@ class myApp(wx.Frame):
         self.canvas.draw()
         self.updateStatus()
 
+    def update_plot(self, data):
+        [time, values] = data
+        self.figure.set_canvas(self.canvas)
+        self.axes.clear()
+        self.axes.set_ylabel("Voltage")
+        self.axes.set_xlabel("Time (ms)")
+        self.axes.set_title("Waveform")
+        self.axes.grid(alpha = 0.5)
+        self.axes.plot(time, values)
+        self.canvas.draw()
+
+    # TODO 
+    def highlight_plot(self, data):
+        [min, max] = data
+        self.axes.axvspan(min, max, color='red', alpha=0.5)
+
+
     def updateStatus(self):
         self.statusBar.SetStatusText('current amplitude = {0} , current frequency = {1}, showing plot: {2}'.format(self.amp, self.freq, self.whichPlot))
 
@@ -243,7 +225,7 @@ class myApp(wx.Frame):
         self.updateStatus()
 
     def onSaveAs(self, event):
-        with wx.FileDialog(self, "Save wave file", wildcard="WAV files (*.wav)|*.wav",
+        with wx.FileDialog(self, "Save .wav file", wildcard="WAV files (*.wav)|*.wav",
                         style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
 
             # the user changed their mind

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.integrate import odeint
 
 class mass_spring_damper():
 
@@ -32,6 +33,39 @@ class mass_spring_damper():
 
     def get_resonance(self):
         pass
+    
+    def force(self, t):
+        if t<10:
+            return 0
+        else:
+            return 0
+
+    def lra_system(self, x, t):
+
+        xd0 = x[1] # x' = v
+        xd1 = ( self.force(t) - x[1]*self.Rm - x[0]/self.Cm ) / self.m
+        return [xd0, xd1]
+
+    def calculate_response(self):
+        x_0 = [5,0]
+        t = np.linspace(0, 60, 10000)
+
+        x = odeint(self.lra_system, x_0, t)
+
+        disp = x[:,0]
+        vel = x[:,1]
+
+        fig, ax = plt.subplots(1)
+        ax2 = ax.twinx()
+        ax.set_xlabel('time')
+        ax.set_ylabel('x')
+
+        ax.plot(t, disp, 'b-', label='x')
+        ax2.plot(t, vel, 'g-', label='v')
+        ax.legend()
+        ax2.legend(loc='lower right')
+        plt.show()
+
 
         
 
@@ -60,15 +94,22 @@ class nidec_sprinter_r(mass_spring_damper):
                             }
         super().__init__(self.parameters)
 
+class test_lra(mass_spring_damper):
 
+    def __init__(self):
+        self.parameters = { 'm': 20, 
+                            'Cm': 1/2,
+                            'Rm': 4,
+                            'Bl': .92,
+                            'Re': 15,
+                            'Le': 0.1e-3
+                            }
+        super().__init__(self.parameters)
 
 
 if __name__ == "__main__":
     lra = test_lra()
-    [freq,Z] = lra.get_impedance_spectrum()
-    fig, ax = plt.subplots(1)
-    ax.set_xlabel('Frequency (Hz)')
-    ax.set_ylabel('Ze (ohms)')
+    lra.calculate_response()
+    # [freq,Z] = lra.get_impedance_spectrum()
 
-    line1, = ax.loglog(freq, abs(Z), label='LRA')
-    plt.show()
+

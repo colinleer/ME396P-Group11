@@ -1,6 +1,7 @@
 import wx
 import matplotlib
 import matplotlib.pyplot as plt
+from pubsub import pub
 
 matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
@@ -56,6 +57,9 @@ class lra_panel(wx.Panel):
                         Re_label, self.Re_value, 
                         Bl_label, self.Bl_value])     
 
+        coeffToSend = [self.m_value.GetValue(), self.Cm_value.GetValue(), self.Rm_value.GetValue(), self.Le_value.GetValue(), self.Re_value.GetValue(), self.Bl_value.GetValue()]
+        pub.sendMessage("LRACoeff", data = coeffToSend)
+
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         main_sizer.Add(title_text)
@@ -83,6 +87,10 @@ class lra_panel(wx.Panel):
         self.Le_value.SetValue(str(self.lra.Le))
         self.Re_value.SetValue(str(self.lra.Re))
         self.Bl_value.SetValue(str(self.lra.Bl))
+
+        coeffToSend = [self.m_value.GetValue(), self.Cm_value.GetValue(), self.Rm_value.GetValue(), self.Le_value.GetValue(), self.Re_value.GetValue(), self.Bl_value.GetValue()]
+        pub.sendMessage("LRACoeffData", data = coeffToSend)
+
 
     def plot_response(self, evt):
         data = self.lra.get_impedance_spectrum()

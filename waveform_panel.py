@@ -7,14 +7,11 @@ import numpy as np
 # https://www.blog.pythonlibrary.org/2011/01/04/wxpython-wx-listctrl-tips-and-tricks/
 
 
-
-
 class waveform_builder(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent = parent)
         self.frame = parent  
         # self.SetBackgroundColour('red')
-        
         
         self.waves = [] #list of aggregated waveforms
     
@@ -44,22 +41,17 @@ class waveform_builder(wx.Panel):
         self.freq_spin.SetDigits(2)
         self.freq_spin.Bind(FS.EVT_FLOATSPIN, self.change_frequency_spin)
 
-
-
         self.amp_spin = FS.FloatSpin(self, -1, min_val=-10, max_val=10,
                                  increment=0.1, value=1, agwStyle=FS.FS_LEFT)
         self.amp_spin.SetFormat("%f")
         self.amp_spin.SetDigits(2)
         self.amp_spin.Bind(FS.EVT_FLOATSPIN, self.change_amplitude_spin)
 
-        
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         list_sizer = wx.BoxSizer(wx.VERTICAL)
         control_sizer = wx.BoxSizer(wx.HORIZONTAL)
         parameter_sizer = wx.BoxSizer(wx.VERTICAL)
         parameter_grid = wx.GridSizer(2,2,10)
-
-
 
         control_sizer.Add(self.wvfm_type)
         control_sizer.Add(self.add_btn, 0, wx.LEFT, 5)
@@ -82,18 +74,21 @@ class waveform_builder(wx.Panel):
 
         self.SetSizerAndFit(main_sizer)
 
-
     def build_wvfm(self):
+        self.indexedWaves = []
         time = np.empty(1)
         data = np.empty(1)
         sign = 1
 
         for wave in self.waves:
             [t, v] = wave.get_data()
+            addTime = np.array(t + time[-1]) * 1000
+            addMagnitude = np.array(sign * v)
+            self.indexedWaves.append([addTime, addMagnitude])
             time = np.append(time, t + time[-1])
             data = np.append(data, v * sign)
             sign *= -1
-            
+        
         return time, data
 
     def add_wvfm(self, evt):
@@ -105,7 +100,6 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.SetItem(index, 2, str(wvfm.n))
         self.list_ctrl.SetItem(index, 3, str(wvfm.a))
         self.update_wfvm_data()
-
     
     def delete_wvfm(self, evt):
         item = self.list_ctrl.GetFirstSelected()
@@ -115,15 +109,17 @@ class waveform_builder(wx.Panel):
 
     def update_wfvm_data(self):
         [time, data ] = self.build_wvfm()
+        waveSegment = {}
+        for idx, wave in enumerate(self.indexedWaves):
+            waveSegment["segment {}".format(idx)] = [wave[0].tolist(), wave[1].tolist()]
         pub.sendMessage("update_waveform_data", data = [time*1000, data])
+        pub.sendMessage("waveSegmentData", data = waveSegment)
 
     def select_wvfm(self, evt):
         index = evt.GetIndex()
         wvfm = self.waves[index]
         self.freq_spin.SetValue(wvfm.f)
         self.amp_spin.SetValue(wvfm.a)
-
-
 
     def change_frequency_spin(self, evt):
         val = self.freq_spin.GetValue()
@@ -135,7 +131,6 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.SetItem(index, 1, str(wvfm.f))
         self.update_wfvm_data()
 
-
     def change_amplitude_spin(self, evt):
         val = self.amp_spin.GetValue()
         index = self.list_ctrl.GetFirstSelected()
@@ -146,7 +141,6 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.SetItem(index, 3, str(wvfm.a))
         self.update_wfvm_data()
 
-
 class TestFrame(wx.Frame):
     def __init__(self):
 
@@ -155,7 +149,6 @@ class TestFrame(wx.Frame):
         self.Show()
 
 if __name__ == "__main__":
-
 
     app = wx.App(False)
     frame = TestFrame()

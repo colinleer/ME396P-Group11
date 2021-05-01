@@ -73,6 +73,30 @@ class waveform_builder(wx.Panel):
         main_sizer.Add(parameter_sizer, 0 , wx.LEFT | wx.RIGHT, 60)
 
         self.SetSizerAndFit(main_sizer)
+        pub.subscribe(self.openFile, "sendLoadData")
+
+    def openFile(self, data):
+        self.waves = []
+        loadData = data 
+        loadedSegment = loadData["segments"]
+        loadFreqList = []
+        loadAmpList = []
+        for seg in loadedSegment.keys():
+            loadFreqList.append(loadedSegment[seg][0])
+            loadAmpList.append(loadedSegment[seg][1])
+
+        print(loadAmpList)
+        for k in range(len(loadAmpList)):
+            index = len(self.waves)
+            wvfm = waveform.sine_wave(loadFreqList[k], 0.5, amplitude = loadAmpList[k])
+            self.waves.append(wvfm)
+            self.list_ctrl.InsertItem(index, 'sine ' + str(index))
+            self.list_ctrl.SetItem(index, 1, str(wvfm.f))
+            self.list_ctrl.SetItem(index, 2, str(wvfm.n))
+            self.list_ctrl.SetItem(index, 3, str(wvfm.a))
+            
+        self.update_wfvm_data()
+
 
     def build_wvfm(self):
         self.indexedWaves = []
@@ -81,10 +105,12 @@ class waveform_builder(wx.Panel):
         sign = 1
 
         for wave in self.waves:
+            print(wave)
             [t, v] = wave.get_data()
+            [freqGathered, ampGathered] = wave.getDataExtra()
             addTime = np.array(t + time[-1]) * 1000
             addMagnitude = np.array(sign * v)
-            self.indexedWaves.append([addTime, addMagnitude])
+            self.indexedWaves.append([freqGathered, ampGathered, addTime, addMagnitude])
             time = np.append(time, t + time[-1])
             data = np.append(data, v * sign)
             sign *= -1
@@ -111,7 +137,7 @@ class waveform_builder(wx.Panel):
         [time, data ] = self.build_wvfm()
         waveSegment = {}
         for idx, wave in enumerate(self.indexedWaves):
-            waveSegment["segment {}".format(idx)] = [wave[0].tolist(), wave[1].tolist()]
+            waveSegment["segment {}".format(idx)] = [wave[0], wave[1], wave[2].tolist(), wave[3].tolist()]
         pub.sendMessage("update_waveform_data", data = [time*1000, data])
         pub.sendMessage("waveSegmentData", data = waveSegment)
 

@@ -19,6 +19,9 @@ class waveform():
     
     def get_data(self):
         return self.t, self.v
+
+    def getDataExtra(self):
+        return self.f, self.a
     
     def get_value(time):
         val = np.interp(time, self.t, self.v)
@@ -38,8 +41,9 @@ class sinc_wave(waveform):
 
 
 class sine_wave(waveform):
-    def __init__(self, frequency, num_cycles):
+    def __init__(self, frequency, num_cycles, amplitude = 1):
         super().__init__(frequency, num_cycles)
+        self.a = amplitude
         self.calculate()
         # print(self.v)
     

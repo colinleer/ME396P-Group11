@@ -119,7 +119,8 @@ class myApp(wx.Frame):
         self.axes.grid(alpha = 0.5)
         self.axes.plot(time, values)
         self.canvas.draw()
-        print(self.waveSegment)
+        #print(self.waveSegment)
+        self.dataToExport = values
         
 
     # TODO 
@@ -152,7 +153,7 @@ class myApp(wx.Frame):
             # save the current contents in the file
             pathname = fileDialog.GetPath()
             try:
-                wavWrite(str(pathname), self.wavRate, self.x)
+                wavWrite(str(pathname), 44100, self.dataToExport) 
             except IOError:
                 wx.LogError("Cannot export current data in file {}.".format(pathname))
 

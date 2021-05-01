@@ -48,8 +48,13 @@ class myApp(wx.Frame):
         #self.samWidth = 3
         #self.whichPlot = "builder"
         self.theUI()
-        self.statusBar.SetStatusText('current amplitude = {0} , current frequency = {1}, showing plot: {2}'.format(self.amp, self.freq, self.whichPlot))
+        self.currentFile = ""
+        self.statusBar.SetStatusText("working on new file")
         self.waveSegment = []
+        self.loadedInfo = 0
+        
+    #pub.sendMessage("test", data = 0)
+
 
     def theUI(self):
         # define main panel 
@@ -71,6 +76,7 @@ class myApp(wx.Frame):
         menuBar.Append(fileMenu, "&File")
         menuBar.Append(aboutMenu, "&About")
         self.SetMenuBar(menuBar)
+        self.Bind(wx.EVT_MENU, self.onOpen, openFileMenu)
         self.Bind(wx.EVT_MENU, self.onSaveAs, saveFileMenu)
         self.Bind(wx.EVT_MENU, self.onExportAs, exportFileMenu)
         self.Bind(wx.EVT_MENU, self.About, aboutSubMenu)
@@ -130,7 +136,7 @@ class myApp(wx.Frame):
 
     # Must update this 
     def updateStatus(self):
-        self.statusBar.SetStatusText('current amplitude = {0} , current frequency = {1}, showing plot: {2}'.format(self.amp, self.freq, self.whichPlot))
+        self.statusBar.SetStatusText("file loaded! Using info from {}".format(self.currentFile))
 
     # Displays About Dialog 
     def About(self, evt):
@@ -153,7 +159,7 @@ class myApp(wx.Frame):
             # save the current contents in the file
             pathname = fileDialog.GetPath()
             try:
-                wavWrite(str(pathname), 44100, self.dataToExport) 
+                wavWrite(str(pathname), 44100, self.dataToExport) # in 1 data every 1 milisecond
             except IOError:
                 wx.LogError("Cannot export current data in file {}.".format(pathname))
 
@@ -173,6 +179,23 @@ class myApp(wx.Frame):
                     json.dump(fileToSave, file)
             except IOError:
                 wx.LogError("Cannot save current data in file {}.".format(pathname))
+
+    def onOpen(self, event):
+        with wx.FileDialog(self, "Open workflow", wildcard="JSON files (*.json)|*.json",
+                        style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
+
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return 
+
+            pathname = fileDialog.GetPath()
+            try:
+                self.currentFile = pathname
+                with open(pathname, 'r') as file:
+                    self.loadedInfo = json.load(file)
+                    pub.sendMessage("sendLoadData", data = self.loadedInfo)
+                self.updateStatus()
+            except IOError:
+                wx.LogError("something went wrong lol")
 
 # Run the program
 if __name__ == "__main__":

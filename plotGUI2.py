@@ -7,9 +7,9 @@
 
 
 # Nice TODO
-# sinc function segment necessary?
+# sinc function segment necessary? [prob not]
 # smoothing function between segments
-# save/load wavebuilder segment arrays in custom file format (xml, json)?
+# save/load wavebuilder segment arrays in custom file format (xml, json)? [DEPLOYED]
 # read LRA models parameters from files in a folder
 # highlight current segment on plot
 # additional parameters? alter sine shape, etc

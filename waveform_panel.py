@@ -77,6 +77,7 @@ class waveform_builder(wx.Panel):
 
     def openFile(self, data):
         self.waves = []
+        self.list_ctrl.DeleteAllItems()
         loadData = data 
         loadedSegment = loadData["segments"]
         loadFreqList = []

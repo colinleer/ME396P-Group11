@@ -16,6 +16,8 @@ class lra_panel(wx.Panel):
         self.frame = parent  
         # self.SetBackgroundColour('blue')
 
+        pub.subscribe(self.update_drive_waveform, 'update_waveform_data')
+
         self.lra_models = ['Jawha J6', 'Nidec Sprinter R']
 
         title_text = wx.StaticText(self, label = 'LRA Parameters')
@@ -43,9 +45,10 @@ class lra_panel(wx.Panel):
         self.Bl_value = wx.TextCtrl(self, style = wx.TE_READONLY)
 
         plot_btn = wx.Button(self, label = 'Plot Model')
-        plot_btn.Bind(wx.EVT_BUTTON, self.plot_response)
+        plot_btn.Bind(wx.EVT_BUTTON, self.plot_impedance)
         
         sim_btn = wx.Button(self, label = 'Simulate Response')
+        sim_btn.Bind(wx.EVT_BUTTON, self.simulate_response)
 
         grid = wx.GridSizer(2, 7, 10)
 
@@ -91,21 +94,28 @@ class lra_panel(wx.Panel):
         coeffToSend = [self.m_value.GetValue(), self.Cm_value.GetValue(), self.Rm_value.GetValue(), self.Le_value.GetValue(), self.Re_value.GetValue(), self.Bl_value.GetValue()]
         pub.sendMessage("LRACoeffData", data = coeffToSend)
 
+    def update_drive_waveform(self, data):
+        [time, voltage] = data
+        self.lra.set_driving_function(time, voltage)
+        
 
-    def plot_response(self, evt):
+    def plot_impedance(self, evt):
         data = self.lra.get_impedance_spectrum()
-        # fig, ax = plt.subplots(1)
-        # ax.set_xlabel('Frequency (Hz)')
-        # ax.set_ylabel('Ze (ohms)')
 
-        # line1, = ax.loglog(freq, abs(Z), label='LRA')
-        # plt.show()
-
-        dlg = PlotDialog(data)
+        dlg = ImpedancePlotDialog(data)
         ret = dlg.ShowModal()    
         dlg.Destroy()
 
-class PlotDialog(wx.Dialog):
+    def simulate_response(self, evt):
+        
+        time, displacement = self.lra.calculate_response()
+        
+
+        dlg = ResponsePlotDialog([time,displacement])
+        ret = dlg.ShowModal()
+        dlg.Destroy()
+
+class ImpedancePlotDialog(wx.Dialog):
 
     def __init__(self, data, title="LRA Model", parent=None):
         wx.Dialog.__init__(self, parent=parent, title=title)
@@ -129,6 +139,42 @@ class PlotDialog(wx.Dialog):
         self.axes.set_title("LRA Impedance Spectrum")
         self.axes.grid(alpha = 0.5)
         self.axes.loglog( freq, abs(Ze))
+        self.canvas.draw()
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.canvas, 0, wx.ALL, 10)
+        sizer.Add(self.CreateStdDialogButtonSizer ( wx.OK ), 0, wx.ALIGN_RIGHT)
+
+        # pnl.SetSizer(sizer)
+        sizer.SetSizeHints(self)
+        pnl.SetSizerAndFit(sizer)
+        self.Center()
+
+class ResponsePlotDialog(wx.Dialog):
+
+    def __init__(self, data, title="LRA Response", parent=None):
+        wx.Dialog.__init__(self, parent=parent, title=title)
+        pnl = wx.Panel(self)
+        pnl.SetBackgroundColour('white')
+
+        [time, disp] = data
+
+        # Plot 
+        self.figure = Figure()
+        self.axes = self.figure.add_subplot(111)
+
+        self.canvas = FigureCanvas(pnl, -1, self.figure)
+        self.axes.grid(alpha = 0.5)
+
+        
+        self.figure.set_canvas(self.canvas)
+        self.axes.clear()
+        self.axes.set_ylabel("Displacement ($\mu$m)")
+        plt.ylim([-1000,1000])
+        self.axes.set_xlabel("Time (ms)")
+        self.axes.set_title("LRA Response")
+        self.axes.grid(alpha = 0.5)
+        self.axes.plot( time * 1e3, disp * 1e6)
         self.canvas.draw()
 
         sizer = wx.BoxSizer(wx.VERTICAL)

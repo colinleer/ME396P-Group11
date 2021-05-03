@@ -7,17 +7,17 @@
 
 
 # Nice TODO
-# sinc function segment necessary? [prob not]
+# [WONT DO] sinc function segment necessary
 # smoothing function between segments
-# save/load wavebuilder segment arrays in custom file format (xml, json)? [DEPLOYED]
+# [DONE] save/load wavebuilder segment arrays in custom file format (xml, json)?
 # read LRA models parameters from files in a folder
 # highlight current segment on plot
-# additional parameters? alter sine shape, etc
+# [WONT DO] additional parameters? alter sine shape, etc
 # show LRA model resonant frequency on plot? or in parameters?
 
 # BUG 
-# Waveform segment times shift around when amplitude is changed
-# Deleting waveform segments causes weird behavior
+# [FIXED] Waveform segment times shift around when amplitude is changed 
+# [FIXED] Deleting waveform segments causes weird behavior 
 
 import numpy as np
 import matplotlib

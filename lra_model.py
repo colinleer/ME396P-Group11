@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 
+
 class mass_spring_damper():
 
     def __init__(self, parameters):
@@ -35,8 +36,8 @@ class mass_spring_damper():
         pass
     
     def force(self, t):
-        if t<10:
-            return 0
+        if t<.010:
+            return np.sin(2*np.pi*150*t)
         else:
             return 0
 
@@ -47,8 +48,8 @@ class mass_spring_damper():
         return [xd0, xd1]
 
     def calculate_response(self):
-        x_0 = [5,0]
-        t = np.linspace(0, 60, 10000)
+        x_0 = [0,0]
+        t = np.linspace(0, .5, 10000)
 
         x = odeint(self.lra_system, x_0, t)
 
@@ -75,7 +76,7 @@ class jahwa_j6(mass_spring_damper):
     def __init__(self):
         self.parameters = { 'm': 1.61e-3, 
                             'Cm': .0003,
-                            'Rm': .001,
+                            'Rm': .11,
                             'Bl': 1.12,
                             'Re': 9,
                             'Le': 0.1e-3
@@ -108,7 +109,7 @@ class test_lra(mass_spring_damper):
 
 
 if __name__ == "__main__":
-    lra = test_lra()
+    lra = jahwa_j6()
     lra.calculate_response()
     # [freq,Z] = lra.get_impedance_spectrum()
 

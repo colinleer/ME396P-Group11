@@ -110,6 +110,7 @@ class PlotDialog(wx.Dialog):
     def __init__(self, data, title="LRA Model", parent=None):
         wx.Dialog.__init__(self, parent=parent, title=title)
         pnl = wx.Panel(self)
+        pnl.SetBackgroundColour('white')
 
         [freq, Ze] = data
 
@@ -127,12 +128,12 @@ class PlotDialog(wx.Dialog):
         self.axes.set_xlabel("Frequency (Hz)")
         self.axes.set_title("LRA Impedance Spectrum")
         self.axes.grid(alpha = 0.5)
-        self.axes.loglog(  freq, abs(Ze))
+        self.axes.loglog( freq, abs(Ze))
         self.canvas.draw()
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.canvas, 0, wx.ALL, 10)
-        sizer.Add(self.CreateStdDialogButtonSizer ( wx.OK|wx.CANCEL ))
+        sizer.Add(self.CreateStdDialogButtonSizer ( wx.OK ), 0, wx.ALIGN_RIGHT)
 
         # pnl.SetSizer(sizer)
         sizer.SetSizeHints(self)

@@ -24,7 +24,7 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_wvfm)
 
         #waveform building buttons
-        self.wvfm_type = wx.Choice(self, choices = ['sine', 'sinc'])
+        # self.wvfm_type = wx.Choice(self, choices = ['sine', 'sinc'])
         self.add_btn = wx.Button(self, label= 'add')
         self.delete_btn = wx.Button(self, label = 'delete')
         self.add_btn.Bind(wx.EVT_BUTTON, self.add_wvfm)
@@ -53,8 +53,8 @@ class waveform_builder(wx.Panel):
         parameter_sizer = wx.BoxSizer(wx.VERTICAL)
         parameter_grid = wx.GridSizer(2,2,10)
 
-        control_sizer.Add(self.wvfm_type)
-        control_sizer.Add(self.add_btn, 0, wx.LEFT, 5)
+        # control_sizer.Add(self.wvfm_type)
+        control_sizer.Add(self.add_btn, 0)
         control_sizer.Add(self.delete_btn, 0, wx.LEFT, 5)
 
 
@@ -86,7 +86,7 @@ class waveform_builder(wx.Panel):
             loadFreqList.append(loadedSegment[seg][0])
             loadAmpList.append(loadedSegment[seg][1])
 
-        print(loadAmpList)
+        # print(loadAmpList)
         for k in range(len(loadAmpList)):
             index = len(self.waves)
             wvfm = waveform.sine_wave(loadFreqList[k], 0.5, amplitude = loadAmpList[k])
@@ -98,26 +98,28 @@ class waveform_builder(wx.Panel):
             
         self.update_wfvm_data()
 
-
+    #concatenate waveform segments into single time,data arrays
     def build_wvfm(self):
         self.indexedWaves = []
-        time = np.empty(1)
-        data = np.empty(1)
+        time = np.array([0])
+        data = np.array([0])
         sign = 1
 
         for wave in self.waves:
-            print(wave)
+            print(time[-1])
             [t, v] = wave.get_data()
             [freqGathered, ampGathered] = wave.getDataExtra()
             addTime = np.array(t + time[-1]) * 1000
             addMagnitude = np.array(sign * v)
             self.indexedWaves.append([freqGathered, ampGathered, addTime, addMagnitude])
             time = np.append(time, t + time[-1])
+            print(time)
             data = np.append(data, v * sign)
             sign *= -1
         
         return time, data
 
+    # add waveform segment to list
     def add_wvfm(self, evt):
         index = len(self.waves)
         wvfm = waveform.sine_wave(150, 0.5)
@@ -128,12 +130,16 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.SetItem(index, 3, str(wvfm.a))
         self.update_wfvm_data()
     
+    #delete waveform segment from list
     def delete_wvfm(self, evt):
         item = self.list_ctrl.GetFirstSelected()
-        self.waves.pop(item)
-        self.list_ctrl.DeleteItem(item)
-        self.update_wfvm_data() 
+        # print(item)
+        if item is not -1:
+            self.waves.pop(item)
+            self.list_ctrl.DeleteItem(item)
+            self.update_wfvm_data() 
 
+    #publish waveform data
     def update_wfvm_data(self):
         [time, data ] = self.build_wvfm()
         waveSegment = {}
@@ -141,13 +147,15 @@ class waveform_builder(wx.Panel):
             waveSegment["segment {}".format(idx)] = [wave[0], wave[1], wave[2].tolist(), wave[3].tolist()]
         pub.sendMessage("update_waveform_data", data = [time*1000, data])
         pub.sendMessage("waveSegmentData", data = waveSegment)
-
+    
+    #select waveform from list
     def select_wvfm(self, evt):
         index = evt.GetIndex()
         wvfm = self.waves[index]
         self.freq_spin.SetValue(wvfm.f)
         self.amp_spin.SetValue(wvfm.a)
 
+    #change freqency control event
     def change_frequency_spin(self, evt):
         val = self.freq_spin.GetValue()
         index = self.list_ctrl.GetFirstSelected()
@@ -158,6 +166,7 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.SetItem(index, 1, str(wvfm.f))
         self.update_wfvm_data()
 
+    #change amplitude control event
     def change_amplitude_spin(self, evt):
         val = self.amp_spin.GetValue()
         index = self.list_ctrl.GetFirstSelected()

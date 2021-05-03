@@ -7,7 +7,7 @@ class waveform():
         
         self.id = id(self)
         self.f = frequency
-        self.t = np.linspace(0, num_cycles/self.f, 1000) #ms
+        self.t = np.linspace(0, num_cycles/self.f, 10) #ms
         self.v = np.full(len(self.t), 1)
         self.a = 1
         self.t_0 = 0

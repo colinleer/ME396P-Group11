@@ -170,7 +170,7 @@ class ResponsePlotDialog(wx.Dialog):
         self.figure.set_canvas(self.canvas)
         self.axes.clear()
         self.axes.set_ylabel("Displacement ($\mu$m)")
-        plt.ylim([-1000,1000])
+        # plt.ylim([-1000,1000])
         self.axes.set_xlabel("Time (ms)")
         self.axes.set_title("LRA Response")
         self.axes.grid(alpha = 0.5)

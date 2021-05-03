@@ -3,17 +3,18 @@
 # pythonw ~/Desktop/testCode/plotGUI2.py
 
 # Have TODO
-# Simulated Response
+# [DONE] Simulated Response
 
 
 # Nice TODO
-# [WONT DO] sinc function segment necessary
-# smoothing function between segments
 # [DONE] save/load wavebuilder segment arrays in custom file format (xml, json)?
+# [DONE] highlight current segment on plot
 # read LRA models parameters from files in a folder
-# highlight current segment on plot
-# [WONT DO] additional parameters? alter sine shape, etc
 # show LRA model resonant frequency on plot? or in parameters?
+# smoothing function between segments
+# [WONT DO] additional parameters? alter sine shape, etc
+# [WONT DO] sinc function segment necessary?
+
 
 # BUG 
 # [FIXED] Waveform segment times shift around when amplitude is changed 
@@ -69,9 +70,9 @@ class myApp(wx.Frame):
         menuBar = wx.MenuBar()
         fileMenu = wx.Menu()
         aboutMenu = wx.Menu()
-        openFileMenu = fileMenu.Append(wx.ID_ANY, "&Open")
-        saveFileMenu = fileMenu.Append(wx.ID_ANY, "&Save")
-        exportFileMenu = fileMenu.Append(wx.ID_ANY, "&Export")
+        openFileMenu = fileMenu.Append(wx.ID_ANY, "&Load Waveform")
+        saveFileMenu = fileMenu.Append(wx.ID_ANY, "&Save Waveform")
+        exportFileMenu = fileMenu.Append(wx.ID_ANY, "&Export as .wav")
         aboutSubMenu = aboutMenu.Append(wx.ID_ANY, "&About")
         menuBar.Append(fileMenu, "&File")
         menuBar.Append(aboutMenu, "&About")
@@ -173,7 +174,7 @@ class myApp(wx.Frame):
                 wx.LogError("Cannot export current data in file {}.".format(pathname))
 
     def onSaveAs(self, event):
-        with wx.FileDialog(self, "Save workflow", wildcard="JSON files (*.json)|*.json",
+        with wx.FileDialog(self, "Save workflow", wildcard="Waveform files (*.wvfm)|*.wvfm", #"JSON files (*.json)|*.json"
                         style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
 
             # the user changed their mind
@@ -190,7 +191,7 @@ class myApp(wx.Frame):
                 wx.LogError("Cannot save current data in file {}.".format(pathname))
 
     def onOpen(self, event):
-        with wx.FileDialog(self, "Open workflow", wildcard="JSON files (*.json)|*.json",
+        with wx.FileDialog(self, "Open workflow", wildcard="Waveform files (*.wvfm)|*.wvfm",
                         style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
             if fileDialog.ShowModal() == wx.ID_CANCEL:

@@ -149,14 +149,19 @@ class waveform_builder(wx.Panel):
         if self.wvfm_index is not -1:
             self.waves.pop(self.wvfm_index)
             self.list_ctrl.DeleteItem(self.wvfm_index)
+            self.wvfm_index = -1
+            self.low = 0
+            self.high = 0
             self.update_wfvm_data() 
+
+        
 
     #publish waveform data
     def update_wfvm_data(self):
         [time, data ] = self.build_wvfm()
         waveSegment = {}
         for idx, wave in enumerate(self.indexedWaves):
-            waveSegment["segment {}".format(idx)] = [wave[0], wave[1], wave[2].tolist(), wave[3].tolist()]
+            waveSegment["segment {}".format(idx)] = [wave[0], wave[1]] #, wave[2].tolist(), wave[3].tolist()] #only save freq & amp
         pub.sendMessage("update_waveform_data", data = [time*1000, data, self.low, self.high])
         pub.sendMessage("waveSegmentData", data = waveSegment)
 

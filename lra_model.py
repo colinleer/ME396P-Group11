@@ -39,7 +39,7 @@ class linear_resonant_actuator():
         pass
 
     def set_driving_function(self, time, voltage):
-        print(type(time))
+        # print(type(time))
         self.drive_t = time/1000
         self.drive_v = voltage
     

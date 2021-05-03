@@ -14,7 +14,10 @@ class waveform_builder(wx.Panel):
         # self.SetBackgroundColour('red')
         
         self.waves = [] #list of aggregated waveforms
-    
+        self.wvfm_index = -1 #currently selected wvfm
+        self.low = 0 #low and high t values for selected waveform
+        self.high = 0
+
         # listbox ctrl
         self.list_ctrl = wx.ListCtrl(self, style=wx.LC_REPORT|wx.BORDER_SUNKEN)
         self.list_ctrl.InsertColumn(0, 'Segment')
@@ -22,6 +25,7 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.InsertColumn(2, 'Cycles')
         self.list_ctrl.InsertColumn(3, 'Amplitude')
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_wvfm)
+        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.clear_selection)
 
         #waveform building buttons
         # self.wvfm_type = wx.Choice(self, choices = ['sine', 'sinc'])
@@ -104,19 +108,27 @@ class waveform_builder(wx.Panel):
         time = np.array([0])
         data = np.array([0])
         sign = 1
+        
 
-        for wave in self.waves:
-            print(time[-1])
+        for n, wave in enumerate(self.waves):
+            # print(time[-1])
             [t, v] = wave.get_data()
             [freqGathered, ampGathered] = wave.getDataExtra()
             addTime = np.array(t + time[-1]) * 1000
             addMagnitude = np.array(sign * v)
             self.indexedWaves.append([freqGathered, ampGathered, addTime, addMagnitude])
             time = np.append(time, t + time[-1])
-            print(time)
+            if n == self.wvfm_index:
+                self.low = np.amin(addTime) 
+                self.high = np.amax(addTime)
+            
             data = np.append(data, v * sign)
             sign *= -1
         
+        # if self.wvfm_index is -1:
+        #     self.low = 0
+        #     self.high = 0
+
         return time, data
 
     # add waveform segment to list
@@ -132,11 +144,11 @@ class waveform_builder(wx.Panel):
     
     #delete waveform segment from list
     def delete_wvfm(self, evt):
-        item = self.list_ctrl.GetFirstSelected()
+        # item = self.list_ctrl.GetFirstSelected()
         # print(item)
-        if item is not -1:
-            self.waves.pop(item)
-            self.list_ctrl.DeleteItem(item)
+        if self.wvfm_index is not -1:
+            self.waves.pop(self.wvfm_index)
+            self.list_ctrl.DeleteItem(self.wvfm_index)
             self.update_wfvm_data() 
 
     #publish waveform data
@@ -145,37 +157,49 @@ class waveform_builder(wx.Panel):
         waveSegment = {}
         for idx, wave in enumerate(self.indexedWaves):
             waveSegment["segment {}".format(idx)] = [wave[0], wave[1], wave[2].tolist(), wave[3].tolist()]
-        pub.sendMessage("update_waveform_data", data = [time*1000, data])
+        pub.sendMessage("update_waveform_data", data = [time*1000, data, self.low, self.high])
         pub.sendMessage("waveSegmentData", data = waveSegment)
+
     
     #select waveform from list
     def select_wvfm(self, evt):
-        index = evt.GetIndex()
-        wvfm = self.waves[index]
+        self.wvfm_index = evt.GetIndex()
+        print(self.wvfm_index)
+        wvfm = self.waves[self.wvfm_index]
         self.freq_spin.SetValue(wvfm.f)
         self.amp_spin.SetValue(wvfm.a)
+        self.update_wfvm_data()
+
+    def clear_selection(self, evt):
+        self.wvfm_index = -1
+        self.low = 0
+        self.high = 0
+        self.update_wfvm_data()
+        
 
     #change freqency control event
     def change_frequency_spin(self, evt):
         val = self.freq_spin.GetValue()
-        index = self.list_ctrl.GetFirstSelected()
-        wvfm = self.waves[index]
-        wvfm.f = val
-        wvfm.calculate()
-        self.waves[index] = wvfm
-        self.list_ctrl.SetItem(index, 1, str(wvfm.f))
-        self.update_wfvm_data()
+        # index = self.list_ctrl.GetFirstSelected()
+        if self.wvfm_index is not -1:
+            wvfm = self.waves[self.wvfm_index]
+            wvfm.f = val
+            wvfm.calculate()
+            self.waves[self.wvfm_index] = wvfm
+            self.list_ctrl.SetItem(self.wvfm_index, 1, str(wvfm.f))
+            self.update_wfvm_data()
 
     #change amplitude control event
     def change_amplitude_spin(self, evt):
         val = self.amp_spin.GetValue()
-        index = self.list_ctrl.GetFirstSelected()
-        wvfm = self.waves[index]
-        wvfm.a = val
-        wvfm.calculate()
-        self.waves[index] = wvfm
-        self.list_ctrl.SetItem(index, 3, str(wvfm.a))
-        self.update_wfvm_data()
+        # index = self.list_ctrl.GetFirstSelected()
+        if self.wvfm_index is not -1:
+            wvfm = self.waves[self.wvfm_index]
+            wvfm.a = val
+            wvfm.calculate()
+            self.waves[self.wvfm_index] = wvfm
+            self.list_ctrl.SetItem(self.wvfm_index, 3, str(wvfm.a))
+            self.update_wfvm_data()
 
 class TestFrame(wx.Frame):
     def __init__(self):

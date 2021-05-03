@@ -95,7 +95,7 @@ class lra_panel(wx.Panel):
         pub.sendMessage("LRACoeffData", data = coeffToSend)
 
     def update_drive_waveform(self, data):
-        [time, voltage] = data
+        [time, voltage, low, high] = data
         self.lra.set_driving_function(time, voltage)
         
 
@@ -108,10 +108,10 @@ class lra_panel(wx.Panel):
 
     def simulate_response(self, evt):
         
-        time, displacement = self.lra.calculate_response()
+        time, displacement, t_f = self.lra.calculate_response()
         
 
-        dlg = ResponsePlotDialog([time,displacement])
+        dlg = ResponsePlotDialog([time,displacement, t_f])
         ret = dlg.ShowModal()
         dlg.Destroy()
 
@@ -157,7 +157,7 @@ class ResponsePlotDialog(wx.Dialog):
         pnl = wx.Panel(self)
         pnl.SetBackgroundColour('white')
 
-        [time, disp] = data
+        [time, disp, t_f] = data
 
         # Plot 
         self.figure = Figure()
@@ -175,6 +175,7 @@ class ResponsePlotDialog(wx.Dialog):
         self.axes.set_title("LRA Response")
         self.axes.grid(alpha = 0.5)
         self.axes.plot( time * 1e3, disp * 1e6)
+        self.axes.axvspan(0, t_f*1000, color='green', alpha=0.25)
         self.canvas.draw()
 
         sizer = wx.BoxSizer(wx.VERTICAL)

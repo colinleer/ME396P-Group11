@@ -57,14 +57,15 @@ class linear_resonant_actuator():
 
     def calculate_response(self):
         x_0 = [0,0]
-        t = np.linspace(0, 5*np.amax(self.drive_t), 10000)
+        t_f = np.amax(self.drive_t)
+        t = np.linspace(0, 5*t_f, 10000)
 
         x = odeint(self.lra_system, x_0, t)
 
         disp = x[:,0]
         vel = x[:,1]
 
-        return t, disp
+        return t, disp, t_f
 
 
         

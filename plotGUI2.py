@@ -95,6 +95,7 @@ class myApp(wx.Frame):
         pub.subscribe(self.update_plot, 'update_waveform_data')
         pub.subscribe(self.getWaveSegment, "waveSegmentData")
         pub.subscribe(self.getLRACoeff, "LRACoeffData")
+        # pub.subscribe(self.highlight_plot, "highlight_plot")
         wvfm_panel = waveform_panel.waveform_builder(mainPanel)
         lra_pnl = lra_panel.lra_panel(mainPanel)
 
@@ -116,7 +117,7 @@ class myApp(wx.Frame):
         self.LRACoeff = data
 
     def update_plot(self, data):
-        [time, values] = data
+        [time, values, low, high] = data
         self.figure.set_canvas(self.canvas)
         self.axes.clear()
         self.axes.set_ylabel("Voltage")
@@ -124,6 +125,7 @@ class myApp(wx.Frame):
         self.axes.set_title("Waveform")
         self.axes.grid(alpha = 0.5)
         self.axes.plot(time, values)
+        self.axes.axvspan(low, high, color='red', alpha=0.25)
         self.canvas.draw()
         #print(self.waveSegment)
         self.dataToExport = values
@@ -132,7 +134,8 @@ class myApp(wx.Frame):
     # TODO 
     def highlight_plot(self, data):
         [min, max] = data
-        self.axes.axvspan(min, max, color='red', alpha=0.5)
+        print(data)
+        self.axes.axvspan(low, high, color='red', alpha=0.25)
 
     # Must update this 
     def updateStatus(self):
@@ -141,10 +144,16 @@ class myApp(wx.Frame):
     # Displays About Dialog 
     def About(self, evt):
         text = """
-        Waveform builder GUI, a project for ME-396 taught at the University of Texas at Austin. Built by Knights of Ni!: Rahmat Ashari, Colin Campell, and Peter Wang
+        A project for ME-396P @ UT Austin. 
+        
+        Built by Knights of Ni!: 
+        
+        Rahmat Ashari
+        Colin Campell
+        Peter Wang
         """
                 
-        dlg = wx.MessageDialog(self, text, "Hello", wx.OK)
+        dlg = wx.MessageDialog(self, text, "Haptic Waveform Designer", wx.OK)
         dlg.ShowModal()
         dlg.Destroy()
 

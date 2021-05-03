@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
+import json
 
 
 class linear_resonant_actuator():
@@ -39,13 +40,16 @@ class linear_resonant_actuator():
         pass
 
     def set_driving_function(self, time, voltage):
-        # print(type(time))
         self.drive_t = time/1000
         self.drive_v = voltage
     
     def force(self, t):
         if t< np.amax(self.drive_t):
-            return np.interp(t, self.drive_t, self.drive_v)
+            V = np.interp(t, self.drive_t, self.drive_v)
+            tau = self.Le / self.Re 
+            I = (V / self.Re) * (1 - np.exp(-t/tau))
+            F = self.Bl * I
+            return F
         else:
             return 0
 
@@ -68,48 +72,24 @@ class linear_resonant_actuator():
         return t, disp, t_f
 
 
-        
-
-
-class jahwa_j6(linear_resonant_actuator):
-
-    def __init__(self):
-        self.parameters = { 'm': 1.61e-3, 
-                            'Cm': .0003,
-                            'Rm': .5,
-                            'Bl': 1.12,
-                            'Re': 9,
-                            'Le': 0.1e-3
-                            }
-        super().__init__(self.parameters)
-
-class nidec_sprinter_r(linear_resonant_actuator):
-
-    def __init__(self):
-        self.parameters = { 'm': 2.54e-3, 
-                            'Cm': .0006,
-                            'Rm': .004,
-                            'Bl': .92,
-                            'Re': 15,
-                            'Le': 0.1e-3
-                            }
-        super().__init__(self.parameters)
+    
 
 class test_lra(linear_resonant_actuator):
 
     def __init__(self):
-        self.parameters = { 'm': 20, 
-                            'Cm': 1/2,
-                            'Rm': 4,
-                            'Bl': .92,
-                            'Re': 15,
-                            'Le': 0.1e-3
+        self.parameters = { 'm': 2.61e-3, 
+                            'Cm': .0005,
+                            'Rm': .25,
+                            'Bl': 2,
+                            'Re': 6,
+                            'Le': 0.1e-3, 
+                            'name': 'Test LRA'
                             }
         super().__init__(self.parameters)
 
 
 if __name__ == "__main__":
-    lra = jahwa_j6()
+    lra = test_lra()
     lra.calculate_response()
     
     fig, ax = plt.subplots(1)

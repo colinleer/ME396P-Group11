@@ -1,6 +1,6 @@
 # https://stackoverflow.com/questions/30048457/wxpython-refresh-a-plot-with-another-graph-by-a-button-event
 # https://stackoverflow.com/questions/7647760/how-i-can-set-gap-in-vertical-boxsizer
-# pythonw ~/Desktop/testCode/plotGUI2.py
+# pythonw ~/Desktop/testCode/WaveformBuilder.py
 
 # Have TODO
 # [DONE] Simulated Response

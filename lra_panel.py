@@ -7,6 +7,10 @@ matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
+
+import os
+import json
+
 #local imports
 import lra_model  
 
@@ -14,16 +18,29 @@ class lra_panel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent = parent)
         self.frame = parent  
-        # self.SetBackgroundColour('blue')
 
         pub.subscribe(self.update_drive_waveform, 'update_waveform_data')
 
-        self.lra_models = ['Jawha J6', 'Nidec Sprinter R']
+        self.lra_models = []
+        self.lra_data = []
+        for filename in os.listdir('./lra'):
+            if filename.endswith(".lra"):
+                path = os.path.join('./lra',filename)
+                try:
+                    with open(path, 'r') as file:
+                        lra_info = json.load(file)
+                        self.lra_models.append(lra_info['name'])
+                        self.lra_data.append(lra_info)
+                        
+                    
+                except IOError:
+                    wx.LogError("something went wrong lol")
 
         title_text = wx.StaticText(self, label = 'LRA Parameters')
 
         lra_label = wx.StaticText(self, label = 'Model')
         self.lra_value = wx.Choice(self, choices = self.lra_models)
+        self.lra_value.SetSelection(0)
         self.lra_value.Bind(wx.EVT_CHOICE, self.load_lra)
 
         m_label = wx.StaticText(self, label = 'Mass')
@@ -72,16 +89,18 @@ class lra_panel(wx.Panel):
 
         self.SetSizer(main_sizer) 
 
+
+
         self.load_lra(None)
 
 
     def load_lra(self, evt):
-        name = self.lra_models[self.lra_value.GetSelection()]
+        sel = self.lra_value.GetSelection()
 
-        if name == 'Jawha J6':
-            self.lra = lra_model.jahwa_j6()
-        elif name == 'Nidec Sprinter R':
-            self.lra = lra_model.nidec_sprinter_r()
+        if sel is not -1:
+            self.lra = lra_model.linear_resonant_actuator(self.lra_data[sel])
+        else:
+            self.lra = test_lra()
 
 
         self.m_value.SetValue(str(self.lra.m))
@@ -91,8 +110,6 @@ class lra_panel(wx.Panel):
         self.Re_value.SetValue(str(self.lra.Re))
         self.Bl_value.SetValue(str(self.lra.Bl))
 
-        coeffToSend = [self.m_value.GetValue(), self.Cm_value.GetValue(), self.Rm_value.GetValue(), self.Le_value.GetValue(), self.Re_value.GetValue(), self.Bl_value.GetValue()]
-        pub.sendMessage("LRACoeffData", data = coeffToSend)
 
     def update_drive_waveform(self, data):
         [time, voltage, low, high] = data
@@ -145,7 +162,6 @@ class ImpedancePlotDialog(wx.Dialog):
         sizer.Add(self.canvas, 0, wx.ALL, 10)
         sizer.Add(self.CreateStdDialogButtonSizer ( wx.OK ), 0, wx.ALIGN_RIGHT)
 
-        # pnl.SetSizer(sizer)
         sizer.SetSizeHints(self)
         pnl.SetSizerAndFit(sizer)
         self.Center()
@@ -170,7 +186,6 @@ class ResponsePlotDialog(wx.Dialog):
         self.figure.set_canvas(self.canvas)
         self.axes.clear()
         self.axes.set_ylabel("Displacement ($\mu$m)")
-        # plt.ylim([-1000,1000])
         self.axes.set_xlabel("Time (ms)")
         self.axes.set_title("LRA Response")
         self.axes.grid(alpha = 0.5)

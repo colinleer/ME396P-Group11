@@ -10,5 +10,5 @@ Third Party Dependencies:
   5.  Matplotlib: `pip install matplotlib`
   6.  PyPubSub: `pip install pypubsub`
 
-
+Run: `pythonw WaveformBuilder.py`
 

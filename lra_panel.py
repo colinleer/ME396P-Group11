@@ -2,6 +2,7 @@ import wx
 import matplotlib
 import matplotlib.pyplot as plt
 from pubsub import pub
+import numpy as np
 
 matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
@@ -23,6 +24,9 @@ class lra_panel(wx.Panel):
 
         self.lra_models = []
         self.lra_data = []
+        self.drive_t = np.array([])
+        self.drive_v = np.array([])
+
         for filename in os.listdir('./lra'):
             if filename.endswith(".lra"):
                 path = os.path.join('./lra',filename)
@@ -112,8 +116,7 @@ class lra_panel(wx.Panel):
 
 
     def update_drive_waveform(self, data):
-        [time, voltage, low, high] = data
-        self.lra.set_driving_function(time, voltage)
+        [self.drive_t, self.drive_v, low, high] = data
         
 
     def plot_impedance(self, evt):
@@ -122,10 +125,10 @@ class lra_panel(wx.Panel):
         dlg = ImpedancePlotDialog(data)
         ret = dlg.ShowModal()    
         dlg.Destroy()
-
+    
     def simulate_response(self, evt):
         
-        time, displacement, t_f = self.lra.calculate_response()
+        time, displacement, t_f = self.lra.calculate_response(self.drive_t, self.drive_v)
         
 
         dlg = ResponsePlotDialog([time,displacement, t_f])

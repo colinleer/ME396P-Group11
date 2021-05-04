@@ -35,13 +35,6 @@ class linear_resonant_actuator():
         Ze = self.Re + 1j*om*self.Le + self.Bl**2 / Zmech
 
         return f, Ze
-
-    def get_resonance(self):
-        pass
-
-    def set_driving_function(self, time, voltage):
-        self.drive_t = time/1000
-        self.drive_v = voltage
     
     def force(self, t):
         if t< np.amax(self.drive_t):
@@ -59,8 +52,10 @@ class linear_resonant_actuator():
         xd1 = ( self.force(t) - x[1]*self.Rm - x[0]/self.Cm ) / self.m
         return [xd0, xd1]
 
-    def calculate_response(self):
+    def calculate_response(self, time, voltage):
         x_0 = [0,0]
+        self.drive_t = time/1000
+        self.drive_v = voltage
         t_f = np.amax(self.drive_t)
         t = np.linspace(0, 5*t_f, 10000)
 

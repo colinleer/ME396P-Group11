@@ -13,6 +13,8 @@ class waveform_builder(wx.Panel):
         self.frame = parent  
         # self.SetBackgroundColour('red')
         
+        pub.subscribe(self.openFile, "sendLoadData")
+        
         self.waves = [] #list of aggregated waveforms
         self.wvfm_index = -1 #currently selected wvfm
         self.low = 0 #low and high t values for selected waveform
@@ -28,17 +30,18 @@ class waveform_builder(wx.Panel):
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.clear_selection)
 
         #waveform building buttons
-
         self.add_btn = wx.Button(self, label= 'add')
         self.delete_btn = wx.Button(self, label = 'delete')
         self.add_btn.Bind(wx.EVT_BUTTON, self.add_wvfm)
         self.delete_btn.Bind(wx.EVT_BUTTON, self.delete_wvfm)
 
+        #static text
         title_text = wx.StaticText(self, label = 'Waveform Parameters')
 
         freq_label = wx.StaticText(self, label = 'Frequency')
         amp_label = wx.StaticText(self, label = 'Amplitude')
 
+        #frequency and amplitude controls
         self.freq_spin = FS.FloatSpin(self, -1, min_val=.01, max_val=1000,
                                  increment=1, value=1, agwStyle=FS.FS_LEFT)
         self.freq_spin.SetFormat("%f")
@@ -51,6 +54,7 @@ class waveform_builder(wx.Panel):
         self.amp_spin.SetDigits(2)
         self.amp_spin.Bind(FS.EVT_FLOATSPIN, self.change_amplitude_spin)
 
+        #sizers
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         list_sizer = wx.BoxSizer(wx.VERTICAL)
         control_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -76,7 +80,8 @@ class waveform_builder(wx.Panel):
         main_sizer.Add(parameter_sizer, 0 , wx.LEFT | wx.RIGHT, 60)
 
         self.SetSizerAndFit(main_sizer)
-        pub.subscribe(self.openFile, "sendLoadData")
+
+        
 
     #parse JSON data from opened waveform file
     def openFile(self, data):
@@ -162,7 +167,7 @@ class waveform_builder(wx.Panel):
     #select waveform from list
     def select_wvfm(self, evt):
         self.wvfm_index = evt.GetIndex()
-        print(self.wvfm_index)
+        # print(self.wvfm_index)
         wvfm = self.waves[self.wvfm_index]
         self.freq_spin.SetValue(wvfm.f)
         self.amp_spin.SetValue(wvfm.a)
